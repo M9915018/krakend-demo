@@ -106,7 +106,7 @@ func (r registerer) requestDump(
 
 	// return the modifier
 	fmt.Println("request dumper injected!!!")
-	logger.Debug(fmt.Sprintf("[PLUGIN: %s] Request modifier injected", ModifierRegisterer))
+	//logger.Debug(fmt.Sprintf("[PLUGIN: %s] Request modifier injected", ModifierRegisterer))
 	return func(input interface{}) (interface{}, error) {
 		req, ok := input.(RequestWrapper)
 		if !ok {
@@ -119,13 +119,13 @@ func (r registerer) requestDump(
 
 		new_req := modifierReq(req, str) // 然後呼叫 modifier方法重新實現一個requestWrapper 物件
 
-		fmt.Println("Req params:", req.Params())
-		fmt.Println("headers:", req.Headers())
-		fmt.Println("method:", req.Method())
-		fmt.Println("url:", req.URL())
-		fmt.Println("query:", req.Query())
-		fmt.Println("path:", req.Path())
-		fmt.Println("body:", str)
+		//	fmt.Println("Req params:", req.Params())
+		//	fmt.Println("headers:", req.Headers())
+		//	fmt.Println("method:", req.Method())
+		//	fmt.Println("url:", req.URL())
+		//	fmt.Println("query:", req.Query())
+		//	fmt.Println("path:", req.Path())
+		//	fmt.Println("body:", str)
 
 		// 轉json 物件輸出 要輸出json 物件屬性名稱需要大寫開頭
 		//	fmt.Printf("%s\n",data)
@@ -141,8 +141,7 @@ func (r registerer) requestDump(
 			Path:      req.Path(),
 		}
 		b, _ := json.Marshal(re)
-		fmt.Println("@@@RequestJson:", string(b))
-		//fmt.Println("@@@Request_RE:", re)
+		logger.Info(fmt.Sprintf("[Log] Request: %s", string(b)))
 
 		//	c, _ := json.Marshal(req)
 		//        fmt.Println("###:",string(c))
@@ -171,14 +170,12 @@ func (r registerer) responseDump(
 
 	// return the modifier
 	fmt.Println("response dumper injected!!!")
-	logger.Debug(fmt.Sprintf("[PLUGIN: %s] Response modifier injected", ModifierRegisterer))
+	//logger.Debug(fmt.Sprintf("[PLUGIN: %s] Response modifier injected", ModifierRegisterer))
 	return func(input interface{}) (interface{}, error) {
 		resp, ok := input.(ResponseWrapper)
 		if !ok {
 			return nil, unkownTypeErr
 		}
-
-		fmt.Println("resp: statusCode", resp.StatusCode())
 
 		buf := new(bytes.Buffer)
 		buf.ReadFrom(resp.Io())             // 將input 物件寫到緩衝物件，因此input body 內目前就沒東西了
@@ -196,19 +193,13 @@ func (r registerer) responseDump(
 			StatusCode: resp.StatusCode(),
 		}
 
-		//re := User{Name:"ic"}
-
 		b, _ := json.Marshal(re)
 		//fmt.Println("##Response_re:", re)
-		fmt.Println("##ResponseJson:", string(b))
-
+		//fmt.Println("##ResponseJson:", string(b))
+		logger.Info(fmt.Sprintf("[Log] Resp: %s", string(b)))
 		return new_resp, nil
 	}
 }
-
-//type User struct {
-//  Name string
-//}
 
 func modifierReq(req RequestWrapper, str string) requestWrapper {
 	return requestWrapper{
