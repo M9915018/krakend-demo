@@ -14,6 +14,9 @@ import (
 
 func main() {}
 
+// 增加logger
+var logger Logger = nil
+
 func init() {
 	fmt.Println(string(ModifierRegisterer), " @@@ loaded!!!")
 }
@@ -24,6 +27,25 @@ func init() {
 var ModifierRegisterer = registerer("krakend-debugger")
 
 type registerer string
+
+type Logger interface {
+	Debug(v ...interface{})
+	Info(v ...interface{})
+	Warning(v ...interface{})
+	Error(v ...interface{})
+	Critical(v ...interface{})
+	Fatal(v ...interface{})
+}
+
+func (registerer) RegisterLogger(in interface{}) {
+	l, ok := in.(Logger)
+	if !ok {
+		return
+	}
+	logger = l
+	logger.Debug(fmt.Sprintf("[###PLUGIN: %s] Logger loaded", ModifierRegisterer))
+
+}
 
 // RegisterModifiers is the function the plugin loader will call to register the
 // modifier(s) contained in the plugin using the function passed as argument.
@@ -84,6 +106,7 @@ func (r registerer) requestDump(
 
 	// return the modifier
 	fmt.Println("request dumper injected!!!")
+	logger.Debug(fmt.Sprintf("[PLUGIN: %s] Request modifier injected", ModifierRegisterer))
 	return func(input interface{}) (interface{}, error) {
 		req, ok := input.(RequestWrapper)
 		if !ok {
@@ -148,6 +171,7 @@ func (r registerer) responseDump(
 
 	// return the modifier
 	fmt.Println("response dumper injected!!!")
+	logger.Debug(fmt.Sprintf("[PLUGIN: %s] Response modifier injected", ModifierRegisterer))
 	return func(input interface{}) (interface{}, error) {
 		resp, ok := input.(ResponseWrapper)
 		if !ok {
