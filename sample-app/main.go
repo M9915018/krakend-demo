@@ -5,10 +5,11 @@ import (
 	"net"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 )
 
-var call_key_id string
+var timestamp_str string
 
 func main() {
 	//name := "Go Developers"
@@ -18,12 +19,23 @@ func main() {
 	// 塞鏈結ID到headers
 	x := 10
 	// host_service-start-time_now
-	call_key_id = "ic_" + strconv.FormatInt(now.UnixNano(), x)
-	fmt.Println("call_key_id:", call_key_id)
+	timestamp_str = strconv.FormatInt(now.UnixNano(), x)
+	fmt.Println("timestamp_str:", timestamp_str)
 	fmt.Println("時差:", now_utc.UnixNano()-now.UnixNano())
 
 	fmt.Println("GetHostname:", GetHostname())
 	fmt.Println("GetIP:", GetIP())
+	//GetPIDFileName()
+
+	fmt.Println("key:" + GetHostname() + GetPIDFileName() + timestamp_str)
+}
+
+func GetPIDFileName() string {
+	fileName := os.Args[0]
+	r := strings.NewReplacer("\\", "", ".", "", ":", "")
+	var n_str = r.Replace(fileName)
+	fmt.Println("fileName:", n_str)
+	return n_str
 }
 
 func GetHostname() string {
