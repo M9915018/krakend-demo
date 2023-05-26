@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/url"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -18,7 +19,7 @@ func main() {}
 var logger Logger = nil
 
 func init() {
-	fmt.Println(string(ModifierRegisterer), " @@@ loaded!!!")
+	fmt.Println(string(ModifierRegisterer), " loaded!!!")
 }
 
 // ModifierRegisterer is the symbol the plugin loader will be looking for. It must
@@ -43,7 +44,7 @@ func (registerer) RegisterLogger(in interface{}) {
 		return
 	}
 	logger = l
-	logger.Debug(fmt.Sprintf("[###PLUGIN: %s] Logger loaded", ModifierRegisterer))
+	logger.Debug(fmt.Sprintf("[PLUGIN: %s] Logger loaded", ModifierRegisterer))
 
 }
 
@@ -59,7 +60,7 @@ func (r registerer) RegisterModifiers(f func(
 )) {
 	f(string(r)+"-request", r.requestDump, true, false)
 	f(string(r)+"-response", r.responseDump, false, true)
-	fmt.Println(string(r), " ### registered!!!")
+	fmt.Println(string(r), " registered!!!")
 }
 
 // RequestWrapper is an interface for passing proxy request between the krakend pipe
@@ -85,6 +86,8 @@ type ResponseWrapper interface {
 }
 
 var unkownTypeErr = errors.New("unknow request type")
+
+var transactionid string // 測試是否每次請求這個key 在Requet 和Resp相同
 
 func (r registerer) requestDump(
 	cfg map[string]interface{},
@@ -126,10 +129,17 @@ func (r registerer) requestDump(
 		//	fmt.Println("query:", req.Query())
 		//	fmt.Println("path:", req.Path())
 		//	fmt.Println("body:", str)
+		now := time.Now()
+		// 塞鏈結ID到headers
+		transactionid = "ic_" + strconv.FormatInt(now.UnixNano(), 10)
+		header_apikeyv := []string{transactionid}
+		req.Headers()["KRAKEND_TX_ID"] = header_apikeyv
+		//req.Headers()["KRAKEND_SPAN_ID"] = "456"
+		//req.Headers()["KRAKEND_PARENT_SPAN_ID"] = "123"
 
 		// 轉json 物件輸出 要輸出json 物件屬性名稱需要大寫開頭
 		//	fmt.Printf("%s\n",data)
-		now := time.Now()
+		//now := time.Now()
 		re := Req{
 			Timestamp: now.Unix(),
 			Params:    req.Params(),
@@ -140,6 +150,7 @@ func (r registerer) requestDump(
 			Query:     req.Query(),
 			Path:      req.Path(),
 		}
+
 		b, _ := json.Marshal(re)
 		logger.Info(fmt.Sprintf("[Log] Request: %s", string(b)))
 
@@ -196,6 +207,7 @@ func (r registerer) responseDump(
 		b, _ := json.Marshal(re)
 		//fmt.Println("##Response_re:", re)
 		//fmt.Println("##ResponseJson:", string(b))
+		fmt.Println("transactionid:" + transactionid)
 		logger.Info(fmt.Sprintf("[Log] Resp: %s", string(b)))
 		return new_resp, nil
 	}
