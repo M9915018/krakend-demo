@@ -7,7 +7,9 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"math/rand"
 	"net/url"
+	"os"
 	"strconv"
 	"strings"
 	"time"
@@ -28,6 +30,11 @@ func init() {
 var ModifierRegisterer = registerer("krakend-debugger")
 
 type registerer string
+
+var timestamp_str string
+var spanID string
+var traceId string
+var parentSpanId string
 
 type Logger interface {
 	Debug(v ...interface{})
@@ -87,7 +94,7 @@ type ResponseWrapper interface {
 
 var unkownTypeErr = errors.New("unknow request type")
 
-var transactionid string // 測試是否每次請求這個key 在Requet 和Resp相同
+//var transactionid string // 測試是否每次請求這個key 在Requet 和Resp相同
 
 func (r registerer) requestDump(
 	cfg map[string]interface{},
@@ -131,11 +138,21 @@ func (r registerer) requestDump(
 		//	fmt.Println("body:", str)
 		now := time.Now()
 		// 塞鏈結ID到headers
-		transactionid = "ic_" + strconv.FormatInt(now.UnixNano(), 10)
-		header_apikeyv := []string{transactionid}
-		req.Headers()["KRAKEND_TX_ID"] = header_apikeyv
-		//req.Headers()["KRAKEND_SPAN_ID"] = "456"
-		//req.Headers()["KRAKEND_PARENT_SPAN_ID"] = "123"
+		//transactionid = "ic_" + strconv.FormatInt(now.UnixNano(), 10)
+		spanID = GetSpanID()
+		// 如果header 沒有這個字段就是rootpath 設定為-1
+		parentSpanId = "-1"
+		fmt.Println("parentSpanId:", -1)
+		fmt.Println("spanId:", spanID)
+		timestamp_str = strconv.FormatInt(now.UnixNano(), 10)
+		traceId = getTraceIdString(spanID, timestamp_str)
+
+		header_traceId := []string{traceId}
+		header_spanId := []string{spanID}
+		header_parentSpanId := []string{parentSpanId}
+		req.Headers()["KRAKEND_TX_ID"] = header_traceId
+		req.Headers()["KRAKEND_SPAN_ID"] = header_spanId
+		req.Headers()["KRAKEND_PARENT_SPAN_ID"] = header_parentSpanId
 
 		// 轉json 物件輸出 要輸出json 物件屬性名稱需要大寫開頭
 		//	fmt.Printf("%s\n",data)
@@ -207,7 +224,8 @@ func (r registerer) responseDump(
 		b, _ := json.Marshal(re)
 		//fmt.Println("##Response_re:", re)
 		//fmt.Println("##ResponseJson:", string(b))
-		fmt.Println("transactionid:" + transactionid)
+		fmt.Println("Resp traceId:" + traceId + " ,spanID: " + spanID + " ,parentSpanId: " + parentSpanId)
+
 		logger.Info(fmt.Sprintf("[Log] Resp: %s", string(b)))
 		return new_resp, nil
 	}
@@ -285,4 +303,40 @@ type Resp struct {
 	IsComplete bool
 	StatusCode int
 	Headers    map[string][]string
+}
+
+func getTraceIdString(spanID string, timestamp_str string) string {
+	return GetHostname() + "|" + spanID + "|" + timestamp_str
+}
+
+func GetPID() string {
+	pid := os.Getpid()
+	//fmt.Println("pid:", pid)
+	return strconv.Itoa(pid)
+}
+
+func GetSpanID() string {
+	return GetPID() + Get64RandomNumber()
+}
+
+func Get64RandomNumber() string {
+	rand.Seed(time.Now().UnixNano())
+	//fmt.Println("Get64RandomNumber:", Get64RandomNumber)
+	randomNumber := rand.Uint64()
+	return strconv.FormatUint(randomNumber, 10)
+}
+
+func doReplace(orgstr string) string {
+	r := strings.NewReplacer("\\", "", ".", "", ":", "", "-", "")
+	var n_str = r.Replace(orgstr)
+	return n_str
+}
+
+func GetHostname() string {
+	hostname, err := os.Hostname()
+	if err != nil {
+		fmt.Println("get hostname failed, err = ", err.Error())
+		return ""
+	}
+	return doReplace(hostname)
 }

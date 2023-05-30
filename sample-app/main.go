@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 	"net"
 	"os"
 	"strconv"
@@ -10,6 +11,7 @@ import (
 )
 
 var timestamp_str string
+var spanID string
 
 func main() {
 	//name := "Go Developers"
@@ -25,16 +27,39 @@ func main() {
 
 	fmt.Println("GetHostname:", GetHostname())
 	fmt.Println("GetIP:", GetIP())
-	//GetPIDFileName()
+	fmt.Println("===================================================")
+	// log 要包含這些東西 SpanID 處理程序的ID可以想成是被調用的應用
+	// ParentSpanID 代表上一層調用本層的應用如果沒有填-1 代表最上層的應用
+	// TransactionID 代表整個調用練的ID，相同的TransactionID代表是同一個調用鏈中的的相關請求，再透過ParentSpanID和SpanID區分層級結構
+	fmt.Println("parentSpanId:", -1)
+	spanID = GetPID()
+	GetPID()
+	fmt.Println("Get64RandomNumber:", Get64RandomNumber())
+	fmt.Println("spanId:", spanID)
+	fmt.Println("traceId:" + GetHostname() + "|" + spanID + "|" + timestamp_str)
+}
 
-	fmt.Println("key:" + GetHostname() + GetPIDFileName() + timestamp_str)
+func GetPID() string {
+	pid := os.Getpid()
+	//fmt.Println("pid:", pid)
+	return strconv.Itoa(pid)
+}
+
+func Get64RandomNumber() string {
+	rand.Seed(time.Now().UnixNano())
+	randomNumber := rand.Uint64()
+	return strconv.FormatUint(randomNumber, 10)
 }
 
 func GetPIDFileName() string {
 	fileName := os.Args[0]
-	r := strings.NewReplacer("\\", "", ".", "", ":", "")
-	var n_str = r.Replace(fileName)
-	fmt.Println("fileName:", n_str)
+	//fmt.Println("fileName:", fileName)
+	return doReplace(fileName)
+}
+
+func doReplace(orgstr string) string {
+	r := strings.NewReplacer("\\", "", ".", "", ":", "", "-", "")
+	var n_str = r.Replace(orgstr)
 	return n_str
 }
 
@@ -44,7 +69,7 @@ func GetHostname() string {
 		fmt.Println("get hostname failed, err = ", err.Error())
 		return ""
 	}
-	return hostname
+	return doReplace(hostname)
 }
 
 func GetIP() string {
