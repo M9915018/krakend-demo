@@ -1,0 +1,16 @@
+server:
+  port: 8787
+spring:
+  main:
+    allow-bean-definition-overriding: true
+  application:
+    name: springboot-service
+  http:
+    encoding:
+      enabled: true
+      force: true
+      charset: UTF-8
+
+#  data:
+#    mongodb:
+#      uri=mongodb://127:0:0:1:27017/test:
