@@ -238,7 +238,6 @@ func (r registerer) responseDump(
 		new_resp := modifierResp(resp, str) // 然後呼叫 modifier方法重新實現一個requestWrapper 物件
 		now := time.Now()
 		//doTranceSetting(resp.Headers(), now, false)
-
 		re := Resp{ // 要輸出json 字首要大寫
 			Timestamp:  now.Unix(),
 			Data:       resp.Data(),
@@ -251,7 +250,9 @@ func (r registerer) responseDump(
 		//fmt.Println("##Response_re:", re)
 		//fmt.Println("##ResponseJson:", string(b))
 		//fmt.Println("Resp traceId:" + traceId + " ,spanID: " + spanID + " ,parentSpanId: " + parentSpanId)
+
 		logger.Info(fmt.Sprintf("[K-TrancLog] Resp: %s", string(b)))
+
 		return new_resp, nil
 	}
 }
@@ -362,7 +363,6 @@ func doReplace(orgstr string) string {
 	var n_str = r.Replace(orgstr)
 	return n_str
 }
-
 func GetHostname() string {
 	hostname, err := os.Hostname()
 	if err != nil {
