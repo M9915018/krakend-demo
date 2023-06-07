@@ -22,7 +22,7 @@ var logger Logger = nil
 
 func init() {
 	fmt.Println(string(ModifierRegisterer), " loaded!!!")
-	start_timestamp_str = strconv.FormatInt(time.Now().Unix(), 10)
+	start_timestamp_str = strconv.FormatInt(time.Now().UnixMicro(), 10)
 }
 
 // ModifierRegisterer is the symbol the plugin loader will be looking for. It must
@@ -33,11 +33,10 @@ var ModifierRegisterer = registerer("krakend-debugger")
 type registerer string
 
 var start_timestamp_str string // 程序啟動的時間
-//var timestamp_str string
-//var spanID string
-//var traceId string
-//var parentSpanId string = "-1"
-
+// var timestamp_str string
+// var spanID string
+// var traceId string
+// var parentSpanId string = "-1"
 type Logger interface {
 	Debug(v ...interface{})
 	Info(v ...interface{})
@@ -122,8 +121,40 @@ func (r registerer) requestDump(
 		if !ok {
 			return nil, unkownTypeErr
 		}
-		jsonS, _ := json.Marshal(req.Headers())
-		fmt.Println("org_headers :" + string(jsonS))
+
+		// printEvens := func(ctx context.Context) {
+		// 	ctx, span := trace.StartSpan(ctx, "my/package.Function")
+		// 	defer span.End()
+
+		// 	for i := 0; i < 10; i++ {
+		// 		if i%2 == 0 {
+		// 			fmt.Printf("Even!\n")
+		// 		}
+		// 	}
+		// }
+
+		// func fromContext(ctx context.Context) *trace.Span {
+		// 	span := trace.FromContext(ctx)
+		// 	if span == nil {
+		// 		span, _ = ctx.Value(ContextKey).(*trace.Span)
+		// 	}
+		// 	return span
+		// }
+
+		// fmt.Println("=======================")
+		// ctx := context.Background()
+		// printEvens(ctx)
+		// span := trace.FromContext(ctx)
+		// fmt.Println("SpanID:", span.SpanContext().SpanID)
+		// fmt.Println("TraceID:", span.SpanContext().TraceID)
+		// fmt.Println("TraceOptions:", span.SpanContext().TraceOptions)
+		// fmt.Println("Tracestate:", span.SpanContext().Tracestate)
+		// fmt.Println(ctx)
+		// fmt.Println(span)
+		// fmt.Println("=======================")
+
+		//jsonS, _ := json.Marshal(req.Headers())
+		//fmt.Println("org_headers :" + string(jsonS))
 		buf := new(bytes.Buffer)
 		buf.ReadFrom(req.Body())         // 將input 物件寫到緩衝物件，因此input body 內目前就沒東西了
 		str := buf.String()              // 重緩衝物件取出字串內容
@@ -135,7 +166,7 @@ func (r registerer) requestDump(
 		//  fmt.Printf("%s\n",data)
 		//now := time.Now()
 		re := Req{
-			Timestamp: now.Unix(),
+			Timestamp: now.UnixNano(),
 			Params:    req.Params(),
 			Headers:   req.Headers(),
 			Body:      str,
@@ -156,7 +187,6 @@ func doTranceSetting(headers map[string][]string, now time.Time, isRequest bool)
 	//jsonS, _ := json.Marshal(headers)
 	//fmt.Println("headers :" + string(jsonS))
 	var parentSpanId, spanId, traceId string
-
 	// 如果header 沒有這個字段就是rootpath 設定為-1
 	parent_span_value, psi_exists := headers["Krakend_parent_span_id"]
 	if psi_exists {
@@ -165,7 +195,6 @@ func doTranceSetting(headers map[string][]string, now time.Time, isRequest bool)
 	} else {
 		parentSpanId = "-1"
 	}
-
 	tx_value, tx_id_exists := headers["Krakend_tx_id"] // 調用鏈ID
 	if tx_id_exists {
 		//fmt.Println("Krakend_tx_id", tx_value[0])
@@ -173,7 +202,6 @@ func doTranceSetting(headers map[string][]string, now time.Time, isRequest bool)
 	} else {
 		traceId = ""
 	}
-
 	span_value, si_exists := headers["Krakend_span_id"] // 調用鏈ID
 	if si_exists {
 		//fmt.Println("Krakend_tx_id", tx_value[0])
@@ -181,7 +209,6 @@ func doTranceSetting(headers map[string][]string, now time.Time, isRequest bool)
 	} else {
 		spanId = ""
 	}
-
 	setHeader(headers, now, isRequest, parentSpanId, traceId, spanId)
 }
 func setHeader(headers map[string][]string, now time.Time, isRequest bool, parentSpanId string, traceId string, spanId string) {
@@ -190,27 +217,22 @@ func setHeader(headers map[string][]string, now time.Time, isRequest bool, paren
 		spanId = GetSpanID()
 		//fmt.Println("spanId:", spanID)
 		if parentSpanId == "-1" { // 最上層才需要生成traceId
-			timestamp_str = strconv.FormatInt(now.UnixNano(), 10) // 取timestamp 做uuid參數
-			traceId = getTraceIdString(spanId, timestamp_str)     // 透過spanID和timestamp 生成UUID
+			timestamp_str = strconv.FormatInt(now.UnixMicro(), 10) // 取timestamp 做uuid參數
+			traceId = getTraceIdString(spanId, timestamp_str)      // 透過spanID和timestamp 生成UUID
 		}
 	}
-
 	if traceId != "" { // 有traceId 才有紀錄spanId和parentSpanId的必要
 		header_traceId := []string{traceId}
 		headers["Krakend_tx_id"] = header_traceId
-
 		if spanId != "" {
 			header_spanId := []string{spanId}
 			headers["Krakend_span_id"] = header_spanId
 		}
-
 		if parentSpanId != "" && traceId != "" {
 			header_parentSpanId := []string{parentSpanId}
 			headers["Krakend_parent_span_id"] = header_parentSpanId
 		}
-
 	}
-
 	// indexNumber++
 	// header_indexNumber := []string{strconv.Itoa(indexNumber)}
 	// headers["Krakend_order"] = header_indexNumber
@@ -240,18 +262,29 @@ func (r registerer) responseDump(
 		if !ok {
 			return nil, unkownTypeErr
 		}
-
-		jsonS, _ := json.Marshal(resp.Headers())
-		fmt.Println("resp_org_headers :" + string(jsonS))
-
+		//jsonS, _ := json.Marshal(resp.Headers())
+		//fmt.Println("resp_org_headers :" + string(jsonS))
 		buf := new(bytes.Buffer)
 		buf.ReadFrom(resp.Io())             // 將input 物件寫到緩衝物件，因此input body 內目前就沒東西了
 		str := buf.String()                 // 重緩衝物件取出字串內容
 		new_resp := modifierResp(resp, str) // 然後呼叫 modifier方法重新實現一個requestWrapper 物件
 		now := time.Now()
+
+		// fmt.Println("###=======================")
+		// ctx := context.Background()
+		// printEvens(ctx)
+		// span := trace.FromContext(ctx)
+		// fmt.Println("SpanID:", span.SpanContext().SpanID)
+		// fmt.Println("TraceID:", span.SpanContext().TraceID)
+		// fmt.Println("TraceOptions:", span.SpanContext().TraceOptions)
+		// fmt.Println("Tracestate:", span.SpanContext().Tracestate)
+		// fmt.Println(ctx)
+		// fmt.Println(span)
+		// fmt.Println("###=======================")
+
 		//doTranceSetting(resp.Headers(), now, false)
 		re := Resp{ // 要輸出json 字首要大寫
-			Timestamp:  now.Unix(),
+			Timestamp:  now.UnixNano(),
 			Data:       resp.Data(),
 			Io:         str,
 			IsComplete: resp.IsComplete(),
@@ -262,7 +295,9 @@ func (r registerer) responseDump(
 		//fmt.Println("##Response_re:", re)
 		//fmt.Println("##ResponseJson:", string(b))
 		//fmt.Println("Resp traceId:" + traceId + " ,spanID: " + spanID + " ,parentSpanId: " + parentSpanId)
-		logger.Info(fmt.Sprintf("[*****K-TrancLog] Resp: %s", string(b)))
+
+		logger.Info(fmt.Sprintf("[K-TrancLog] Resp: %s", string(b)))
+
 		return new_resp, nil
 	}
 }
@@ -336,23 +371,38 @@ type Resp struct {
 	Headers    map[string][]string
 }
 
-func getTraceIdString(spanID string, timestamp_str string) string {
-	return GetHostname() + "|" + spanID + "|" + timestamp_str
-}
 func GetPID() string {
 	pid := os.Getpid()
 	//fmt.Println("pid:", pid)
 	return strconv.Itoa(pid)
 }
-func GetSpanID() string {
-	return GetPID() + "|" + Get64RandomNumber()
+
+func getTraceIdString(spanID string, timestamp_str string) string { // 長度不能超過32 所以各16位元
+	return spanID + timestamp_str
 }
-func Get64RandomNumber() string {
+
+func GetSpanID() string {
+	pid := GetPID()
+	length := 16 - len(pid) //   length of pid
+	return GetPID() + generateRandomString(length)
+}
+
+func GetRandomNumber(number int) string {
 	rand.Seed(time.Now().UnixNano())
-	//fmt.Println("Get64RandomNumber:", Get64RandomNumber)
 	randomNumber := rand.Uint64()
 	return strconv.FormatUint(randomNumber, 10)
 }
+
+func generateRandomString(length int) string {
+	//var letters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789")
+	var letters = []rune("abcdefABCDEF0123456789") // 英文字只能到fF超過會出錯
+	b := make([]rune, length)
+	for i := range b {
+		b[i] = letters[rand.Intn(len(letters))]
+	}
+	return string(b)
+}
+
 func doReplace(orgstr string) string {
 	r := strings.NewReplacer("\\", "", ".", "", ":", "", "-", "")
 	var n_str = r.Replace(orgstr)
