@@ -121,6 +121,38 @@ func (r registerer) requestDump(
 		if !ok {
 			return nil, unkownTypeErr
 		}
+
+		// printEvens := func(ctx context.Context) {
+		// 	ctx, span := trace.StartSpan(ctx, "my/package.Function")
+		// 	defer span.End()
+
+		// 	for i := 0; i < 10; i++ {
+		// 		if i%2 == 0 {
+		// 			fmt.Printf("Even!\n")
+		// 		}
+		// 	}
+		// }
+
+		// func fromContext(ctx context.Context) *trace.Span {
+		// 	span := trace.FromContext(ctx)
+		// 	if span == nil {
+		// 		span, _ = ctx.Value(ContextKey).(*trace.Span)
+		// 	}
+		// 	return span
+		// }
+
+		// fmt.Println("=======================")
+		// ctx := context.Background()
+		// printEvens(ctx)
+		// span := trace.FromContext(ctx)
+		// fmt.Println("SpanID:", span.SpanContext().SpanID)
+		// fmt.Println("TraceID:", span.SpanContext().TraceID)
+		// fmt.Println("TraceOptions:", span.SpanContext().TraceOptions)
+		// fmt.Println("Tracestate:", span.SpanContext().Tracestate)
+		// fmt.Println(ctx)
+		// fmt.Println(span)
+		// fmt.Println("=======================")
+
 		//jsonS, _ := json.Marshal(req.Headers())
 		//fmt.Println("org_headers :" + string(jsonS))
 		buf := new(bytes.Buffer)
@@ -134,7 +166,7 @@ func (r registerer) requestDump(
 		//  fmt.Printf("%s\n",data)
 		//now := time.Now()
 		re := Req{
-			Timestamp: now.Unix(),
+			Timestamp: now.UnixNano(),
 			Params:    req.Params(),
 			Headers:   req.Headers(),
 			Body:      str,
@@ -237,9 +269,22 @@ func (r registerer) responseDump(
 		str := buf.String()                 // 重緩衝物件取出字串內容
 		new_resp := modifierResp(resp, str) // 然後呼叫 modifier方法重新實現一個requestWrapper 物件
 		now := time.Now()
+
+		// fmt.Println("###=======================")
+		// ctx := context.Background()
+		// printEvens(ctx)
+		// span := trace.FromContext(ctx)
+		// fmt.Println("SpanID:", span.SpanContext().SpanID)
+		// fmt.Println("TraceID:", span.SpanContext().TraceID)
+		// fmt.Println("TraceOptions:", span.SpanContext().TraceOptions)
+		// fmt.Println("Tracestate:", span.SpanContext().Tracestate)
+		// fmt.Println(ctx)
+		// fmt.Println(span)
+		// fmt.Println("###=======================")
+
 		//doTranceSetting(resp.Headers(), now, false)
 		re := Resp{ // 要輸出json 字首要大寫
-			Timestamp:  now.Unix(),
+			Timestamp:  now.UnixNano(),
 			Data:       resp.Data(),
 			Io:         str,
 			IsComplete: resp.IsComplete(),

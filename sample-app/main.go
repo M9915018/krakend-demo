@@ -23,9 +23,10 @@ func main() {
 	// 塞鏈結ID到headers
 	x := 10
 	// host_service-start-time_now
-	fmt.Println("timestamp_str UnixNano():", strconv.FormatInt(now.UnixNano(), x))
-
-	fmt.Println("timestamp_str Unix():", strconv.FormatInt(now.UnixMicro(), x))
+	fmt.Println("timestamp_str UnixNano() :", strconv.FormatInt(now.UnixNano(), x))
+	fmt.Println("timestamp_str UnixMicro():", strconv.FormatInt(now.UnixMicro(), x))
+	fmt.Println("timestamp_str Unix()     :", strconv.FormatInt(now.Unix(), x))
+	fmt.Println("timestamp_str UnixMilli():", strconv.FormatInt(now.UnixMilli(), x))
 
 	timestamp_str = strconv.FormatInt(now.UnixMicro(), x)
 
