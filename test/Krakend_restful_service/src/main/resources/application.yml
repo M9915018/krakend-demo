@@ -10,7 +10,27 @@ spring:
       enabled: true
       force: true
       charset: UTF-8
-
+  elasticsearch:
+    rest:
+      uris:
+        - http://192.168.56.1:9200
 #  data:
 #    mongodb:
 #      uri=mongodb://127:0:0:1:27017/test:
+
+# ELASTICSEARCH
+#elasticsearch:
+#  host: 192.168.56.1
+#  port: 9200
+
+# SWAGGER
+#springdoc:
+#  swagger-ui.path: /swagger-ui.html
+#  api-docs.path: /v1/api-docs
+# Logging
+#logging:
+#  file:
+#    name: ./logs/log.log
+#  level:
+#    root: DEBUG
+#    com.cb: DEBUG
