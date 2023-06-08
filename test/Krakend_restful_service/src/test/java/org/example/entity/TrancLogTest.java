@@ -166,24 +166,11 @@ public class TrancLogTest {
         }
     }
 
+    @Test
     public void testAppBathQueryApi() throws IOException {
-        String json="";
-
-//        List<String> list=new ArrayList(10);
-//        list.add("9789861755267");
-//        list.add("9789861755268");
-//        list.add("9789861754604");
-//        ObjectMapper objectMapper = new ObjectMapper();
-//        String json;
-//        try {
-//            json = objectMapper.writeValueAsString(list);
-//        } catch (JsonProcessingException e) {
-//            throw new RuntimeException(e);
-//        }
-
+        String json="[{\"id\":\"2595728C5aC677b9\",\"traceId\":\"2595728C5aC677b91686063562315582\",\"parentId\":null,\"timestamp\":1686063562315582273,\"duration\":15065708,\"name\":\"dUk4kYgBR_x-qPJEPofx\",\"tags\":{},\"localEndpoint\":{\"serviceName\":\"tmax\"}},{\"id\":\"25957ABfFb168Ef0\",\"traceId\":\"2595728C5aC677b91686063562315582\",\"parentId\":null,\"timestamp\":1686063562327647116,\"duration\":4600354,\"name\":\"d0k4kYgBR_x-qPJEPof6\",\"tags\":{},\"localEndpoint\":{\"serviceName\":\"numberfron\"}}]\n/get\",\"Method\":\"POST\"},\"localEndpoint\":{\"serviceName\":\"tmax\"}},{\"id\":\"25957ABfFb168Ef0\",\"traceId\":\"2595728C5aC677b91686063562315582\",\"parentId\":\"2595728C5aC677b9\",\"timestamp\":1686063562327647116,\"duration\":4600354,\"name\":\"d0k4kYgBR_x-qPJEPof6\",\"tags\":{},\"localEndpoint\":{\"serviceName\":\"SCM\"}}]\n/get\",\"Method\":\"POST\"},\"localEndpoint\":{\"serviceName\":\"tmax\"}},{\"id\":\"25957ABfFb168Ef0\",\"traceId\":\"2595728C5aC677b91686063562315582\",\"parentId\":\"2595728C5aC677b9\",\"timestamp\":1686063562327647116,\"duration\":4600354,\"name\":\"d0k4kYgBR_x-qPJEPof6\",\"tags\":{},\"localEndpoint\":{\"serviceName\":\"account_service\"}}]\n/get\",\"Method\":\"POST\"},\"localEndpoint\":{\"serviceName\":\"SCM\"}},{\"id\":\"25957ABfFb168Ef0\",\"traceId\":\"2595728C5aC677b91686063562315582\",\"parentId\":\"2595728C5aC677b9\",\"timestamp\":1686063562327647116,\"duration\":4600354,\"name\":\"d0k4kYgBR_x-qPJEPof6\",\"tags\":{\"Path\":null,\"Method\":null},\"localEndpoint\":{\"serviceName\":\"moec\"}}]\n";
 
         OkHttpClient client1=new OkHttpClient();
-
         // 查詢api的方法參數丟list和每次查得批量
         String map =client1.bathQueryApi(json);
 //        assertTrue(map.get("9789861755267").equals("1"));

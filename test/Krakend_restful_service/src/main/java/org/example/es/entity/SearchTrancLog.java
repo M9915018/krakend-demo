@@ -45,13 +45,13 @@ public class SearchTrancLog implements Serializable {
     private String source_host;
 
     @Field (name = "response.Path")
-    private long path;
+    private String path;
 
     @Field (name = "response.Method")
-    private long method;
+    private String method;
 
     @Field (name = "response.StatusCode")
-    private long statusCode;
+    private String statusCode;
 
 
 

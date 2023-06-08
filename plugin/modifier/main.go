@@ -28,7 +28,8 @@ func init() {
 // ModifierRegisterer is the symbol the plugin loader will be looking for. It must
 // implement the plugin.Registerer interface
 // https://github.com/luraproject/lura/blob/master/proxy/plugin/modifier.go#L71
-var ModifierRegisterer = registerer("krakend-debugger")
+var pluginName = "krakend-debugger"
+var ModifierRegisterer = registerer(pluginName)
 
 type registerer string
 
@@ -121,6 +122,14 @@ func (r registerer) requestDump(
 		if !ok {
 			return nil, unkownTypeErr
 		}
+
+		// config, ok := cfg[pluginName].(map[string]interface{})
+		// if !ok {
+		// 	return h, errors.New("configuration not found")
+		// }
+
+		// // The plugin will look for this path:
+		// path, _ := config["path"].(string)
 
 		// printEvens := func(ctx context.Context) {
 		// 	ctx, span := trace.StartSpan(ctx, "my/package.Function")

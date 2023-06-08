@@ -13,7 +13,7 @@ public class TempoAPIBean {
     private String traceId;
     private String parentId;
     private long timestamp;
-    private long duration;
+    private long duration=0;
     private String name;
     private Map<String, Object> tags;
     private LocalEndpoint localEndpoint;
@@ -21,16 +21,20 @@ public class TempoAPIBean {
     public TempoAPIBean(SearchTrancLog tmp, long cost) {
         this.id = tmp.getSpanID();
         this.traceId = tmp.getTraceID()[0];
-        this.timestamp = tmp.getTimestamp();
-        this.name = tmp.getId();
-        this.duration = cost;
 
-        if(tmp.getParent_spanID() != null && tmp.getParent_spanID() != "" )
+        this.timestamp = tmp.getTimestamp()/1000;
+        this.name = tmp.getId();
+        if(cost > 0)
+        this.duration = cost/1000;
+
+        if(tmp.getParent_spanID() != null && !tmp.getParent_spanID().equals("") && !tmp.getParent_spanID().equals("-1"))
             this.parentId = tmp.getParent_spanID();
 
         // 增加tags 區塊數據
         tags = new HashMap<>();
+        if(tmp.getPath() != null && !tmp.getPath().equals("") )
         tags.put("Path",tmp.getPath());
+        if(tmp.getMethod() != null && !tmp.getMethod().equals("") )
         tags.put("Method", tmp.getMethod());
 
         // serviceName先暫時製作假數據 之後再接真實數據
