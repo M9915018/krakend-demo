@@ -123,14 +123,18 @@ func (r registerer) requestDump(
 			return nil, unkownTypeErr
 		}
 
+		// // 取得從配置檔中帶入的服務名稱
+		// var name string
 		// config, ok := cfg[pluginName].(map[string]interface{})
 		// if !ok {
-		// 	return h, errors.New("configuration not found")
+		// 	fmt.Println("*configuration not found")
+		// 	name = ""
+		// } else {
+		// 	name = config["name"].(string)
+		// 	fmt.Println("*configuration name:" + name)
 		// }
 
-		// // The plugin will look for this path:
-		// path, _ := config["path"].(string)
-
+		// The plugin will look for this path:
 		// printEvens := func(ctx context.Context) {
 		// 	ctx, span := trace.StartSpan(ctx, "my/package.Function")
 		// 	defer span.End()
@@ -174,6 +178,7 @@ func (r registerer) requestDump(
 		// 轉json 物件輸出 要輸出json 物件屬性名稱需要大寫開頭
 		//  fmt.Printf("%s\n",data)
 		//now := time.Now()
+
 		re := Req{
 			Timestamp: now.UnixNano(),
 			Params:    req.Params(),
@@ -183,7 +188,14 @@ func (r registerer) requestDump(
 			Url:       req.URL(),
 			Query:     req.Query(),
 			Path:      req.Path(),
+			Kconfig:   cfg[pluginName].(map[string]interface{}),
 		}
+
+		// add config to params
+		// for k, v := range config {
+		// 	re.Params[k] = v.(string)
+		// }
+
 		b, _ := json.Marshal(re)
 		logger.Info(fmt.Sprintf("[K-TrancLog] Request: %s", string(b)))
 		//  c, _ := json.Marshal(req)
@@ -290,7 +302,7 @@ func (r registerer) responseDump(
 		// fmt.Println(ctx)
 		// fmt.Println(span)
 		// fmt.Println("###=======================")
-
+		//config, ok := cfg[pluginName].(map[string]interface{})
 		//doTranceSetting(resp.Headers(), now, false)
 		re := Resp{ // 要輸出json 字首要大寫
 			Timestamp:  now.UnixNano(),
@@ -299,6 +311,7 @@ func (r registerer) responseDump(
 			IsComplete: resp.IsComplete(),
 			Headers:    resp.Headers(),
 			StatusCode: resp.StatusCode(),
+			Kconfig:    cfg[pluginName].(map[string]interface{}),
 		}
 		b, _ := json.Marshal(re)
 		//fmt.Println("##Response_re:", re)
@@ -370,6 +383,7 @@ type Req struct {
 	Url       *url.URL
 	Query     url.Values
 	Path      string
+	Kconfig   map[string]interface{}
 }
 type Resp struct {
 	Timestamp  int64
@@ -378,6 +392,7 @@ type Resp struct {
 	IsComplete bool
 	StatusCode int
 	Headers    map[string][]string
+	Kconfig    map[string]interface{}
 }
 
 func GetPID() string {
