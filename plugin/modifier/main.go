@@ -28,7 +28,7 @@ func init() {
 // ModifierRegisterer is the symbol the plugin loader will be looking for. It must
 // implement the plugin.Registerer interface
 // https://github.com/luraproject/lura/blob/master/proxy/plugin/modifier.go#L71
-var pluginName = "krakend-debugger"
+var pluginName = "traffic-logs"
 var ModifierRegisterer = registerer(pluginName)
 
 type registerer string
