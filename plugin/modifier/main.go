@@ -21,7 +21,7 @@ func main() {}
 var logger Logger = nil
 
 func init() {
-	fmt.Println(string(ModifierRegisterer), " loaded!!!")
+	// fmt.Println(string(ModifierRegisterer), " loaded!!!")
 	start_timestamp_str = strconv.FormatInt(time.Now().UnixMicro(), 10)
 }
 
